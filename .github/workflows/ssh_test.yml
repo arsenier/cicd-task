@@ -31,5 +31,5 @@ jobs:
 
           - name: Log into the server via SSH and deploy image
             run: |
-                echo ${{ secrets.SELECTEL_PRIVATE_SSH_KEY }} > ~/.ssh/selectel
+                echo "${{ secrets.SELECTEL_PRIVATE_SSH_KEY }}" > ~/.ssh/selectel
                 ssh -i ~/.ssh/selectel -o StrictHostKeyChecking=no root@${{ secrets.SELECTEL_SERVER_IP }} "whoami > ~/whoami"
