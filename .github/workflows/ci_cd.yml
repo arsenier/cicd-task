@@ -80,5 +80,4 @@ jobs:
         steps:
           - name: Log into the server via SSH and deploy image
             run: |
-                ssh ip172-18-0-6-ct84352im2rg00cta2u0@direct.labs.play-with-docker.com
-                docker run -d -p 5000:5000 ${{ needs.publish_image.steps.meta.outputs.tags }}:
+                ssh ip172-18-0-6-ct84352im2rg00cta2u0@direct.labs.play-with-docker.com "docker run -d -p 5000:5000 ${{ needs.publish_image.steps.meta.outputs.tags }}"
