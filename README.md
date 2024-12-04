@@ -1,4 +1,4 @@
-[![CI](https://github.com/arsenier/cicd-task/actions/workflows/ci_tests.yml/badge.svg)](https://github.com/arsenier/cicd-task/actions/workflows/ci_tests.yml)
+[![CI/CD](https://github.com/arsenier/cicd-task/actions/workflows/ci_cd.yml/badge.svg)](https://github.com/arsenier/cicd-task/actions/workflows/ci_cd.yml)
 
 # Python Flask - Demo Web Application
 
