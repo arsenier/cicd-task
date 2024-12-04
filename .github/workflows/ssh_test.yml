@@ -38,4 +38,6 @@ jobs:
               host: ${{ secrets.SELECTEL_SERVER_IP }}
               username: ${{ secrets.SELECTEL_SERVER_USER }}
               key: ${{ secrets.SELECTEL_PRIVATE_SSH_KEY }}
-              script: docker run -d -p 5000:5000 arsenier/cicd-task:master
+              script: |
+                  docker ps -aq | xargs docker stop | xargs docker rm
+                  docker run -d -p 5000:5000 arsenier/cicd-task:master
