@@ -22,10 +22,10 @@ jobs:
                 python-version: "3.12"
             
           - name: Set up make
-            run:
+            run: |
                 apt update
                 apt install make
           - name: Run tests
-            run:
+            run: |
                 make test
 
