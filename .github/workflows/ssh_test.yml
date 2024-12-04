@@ -12,7 +12,24 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-          - name: Log into the server via SSH and deploy image
-            run: |
-                ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
-                ssh -o StrictHostKeyChecking=no ip172-18-0-6-ct84352im2rg00cta2u0@direct.labs.play-with-docker.com "whoami"
+            - name: executing remote ssh commands using password
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                  host: direct.labs.play-with-docker.com
+                  username: ip172-18-0-6-ct84352im2rg00cta2u0
+                  # password: ${{ secrets.PASSWORD }}
+                  port: 22
+                  script: whoami
+            # - name: executing remote ssh commands using password
+            #   uses: appleboy/ssh-action@v1.2.0
+            #   with:
+            #       host: ${{ secrets.HOST }}
+            #       username: linuxserver.io
+            #       password: ${{ secrets.PASSWORD }}
+            #       port: ${{ secrets.PORT }}
+            #       script: whoami
+        # steps:
+        #   - name: Log into the server via SSH and deploy image
+        #     run: |
+        #         ssh-keygen -t ed25519 -P "" -f ~/.ssh/id_ed25519
+        #         ssh -o StrictHostKeyChecking=no ip172-18-0-6-ct84352im2rg00cta2u0@direct.labs.play-with-docker.com "whoami"
