@@ -38,4 +38,4 @@ jobs:
               host: ${{ secrets.SELECTEL_SERVER_IP }}
               username: ${{ secrets.SELECTEL_SERVER_USER }}
               key: ${{ secrets.SELECTEL_PRIVATE_SSH_KEY }}
-              script: whoami
+              script: docker run -d -p 5000:5000 arsenier/cicd-task:master
