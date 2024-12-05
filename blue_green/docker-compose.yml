@@ -1,0 +1,36 @@
+networks:
+    cicd_app:
+        driver: bridge
+
+services:
+
+    app_green:
+        image: arsenier/cicd-task:master
+        networks:
+            - cicd_app
+        healthcheck:
+            test: wget --no-verbose --tries=1 --spider http://localhost:5000/
+            interval: 5s
+            timeout: 5s
+            retries: 6
+            start_period: 25s
+
+    app_blue:
+        image: arsenier/cicd-task:master
+        networks:
+            - cicd_app
+        healthcheck:
+            test: wget --no-verbose --tries=1 --spider http://localhost:5000/
+            interval: 5s
+            timeout: 5s
+            retries: 6
+            start_period: 25s
+
+    proxy:
+        image: arsenier/cicd-task:nginx
+        ports:
+            - "80:80"
+        networks:
+            - cicd_app
+
+# docker ps -f name=app_blue -f health=healthy -q

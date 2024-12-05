@@ -124,5 +124,7 @@ jobs:
               username: ${{ secrets.SELECTEL_SERVER_USER }}
               key: ${{ secrets.SELECTEL_PRIVATE_SSH_KEY }}
               script: |
-                  docker ps -aq | xargs docker stop | xargs docker rm
-                  docker run --pull=always -d -p 5000:5000 arsenier/cicd-task:master
+                  /root/bg_switch.sh
+
+                # docker ps -aq | xargs docker stop | xargs docker rm
+                # docker run --pull=always -d -p 5000:5000 arsenier/cicd-task:master
