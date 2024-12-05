@@ -114,7 +114,7 @@ jobs:
     deploy_application:
         name: Deploy application on the remote server
         runs-on: ubuntu-latest
-        needs: publish_image
+        needs: [publish_image, publish_nginx]
 
         steps:
           - name: Log into the server via SSH and deploy image
