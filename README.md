@@ -1,113 +1,148 @@
 [![CI/CD](https://github.com/arsenier/cicd-task/actions/workflows/ci_cd.yml/badge.svg)](https://github.com/arsenier/cicd-task/actions/workflows/ci_cd.yml)
 
-# Python Flask - Demo Web Application
+Файл пайплайна CI/CD, использующий GitHub Actions, описывает автоматизированный процесс интеграции и доставки программного обеспечения. Он состоит из нескольких ключевых компонентов, которые выполняются в ответ на определенные события, такие как коммиты в ветку `master`. Давайте разберем этот файл по частям.
 
-This is a simple Python Flask web application. The app provides system information and a realtime monitoring screen with dials showing CPU, memory, IO and process information.
+## Основные компоненты файла
 
-The app has been designed with cloud native demos & containers in mind, in order to provide a real working application for deployment, something more than "hello-world" but with the minimum of pre-reqs. It is not intended as a complete example of a fully functioning architecture or complex software design.
+### 1. Определение пайплайна
 
-Typical uses would be deployment to Kubernetes, demos of Docker, CI/CD (build pipelines are provided), deployment to cloud (Azure) monitoring, auto-scaling
+```yaml
+name: CI/CD
 
-## Screenshot
-
-![screen](https://user-images.githubusercontent.com/14982936/30533171-db17fccc-9c4f-11e7-8862-eb8c148fedea.png)
-
-# Status
-
-![](https://img.shields.io/github/last-commit/benc-uk/python-demoapp) ![](https://img.shields.io/github/release-date/benc-uk/python-demoapp) ![](https://img.shields.io/github/v/release/benc-uk/python-demoapp) ![](https://img.shields.io/github/commit-activity/y/benc-uk/python-demoapp)
-
-Live instances:
-
-[![](https://img.shields.io/website?label=Hosted%3A%20Azure%20App%20Service&up_message=online&url=https%3A%2F%2Fpython-demoapp.azurewebsites.net%2F)](https://python-demoapp.azurewebsites.net/)  
-[![](https://img.shields.io/website?label=Hosted%3A%20Kubernetes&up_message=online&url=https%3A%2F%2Fpython-demoapp.kube.benco.io%2F)](https://python-demoapp.kube.benco.io/)
-
-## Building & Running Locally
-
-### Pre-reqs
-
-- Be using Linux, WSL or MacOS, with bash, make etc
-- [Python 3.8+](https://www.python.org/downloads/) - for running locally, linting, running tests etc
-- [Docker](https://docs.docker.com/get-docker/) - for running as a container, or image build and push
-- [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli-linux) - for deployment to Azure
-
-Clone the project to any directory where you do development work
-
+on:
+    push:
+      branches: [ "master" ]
 ```
-git clone https://github.com/benc-uk/python-demoapp.git
+Этот блок определяет имя пайплайна (`CI/CD`) и событие, при котором он будет запускаться — в данном случае это `push` в ветку `master`.
+
+### 2. Права доступа
+
+```yaml
+permissions:
+    contents: read
+    id-token: write
 ```
+Здесь устанавливаются права доступа для выполнения действий в рамках пайплайна. В данном случае разрешается чтение содержимого репозитория и запись токена идентификации.
 
-### Makefile
+### 3. Задание работ (jobs)
 
-A standard GNU Make file is provided to help with running and building locally.
+Пайплайн состоит из трех основных работ: `run_tests`, `publish_image` и `deploy_application`.
 
-```text
-help                 💬 This help message
-lint                 🔎 Lint & format, will not fix but sets exit code on error
-lint-fix             📜 Lint & format, will try to fix errors and modify code
-image                🔨 Build container image from Dockerfile
-push                 📤 Push container image to registry
-run                  🏃 Run the server locally using Python & Flask
-deploy               🚀 Deploy to Azure Web App
-undeploy             💀 Remove from Azure
-test                 🎯 Unit tests for Flask app
-test-report          🎯 Unit tests for Flask app (with report output)
-test-api             🚦 Run integration API tests, server must be running
-clean                🧹 Clean up project
+#### **run_tests**
+
+```yaml
+run_tests:
+    runs-on: ubuntu-latest
 ```
+Эта работа выполняется на последней версии Ubuntu. Она включает следующие шаги:
 
-Make file variables and default values, pass these in when calling `make`, e.g. `make image IMAGE_REPO=blah/foo`
+- **Проверка кода**:
+  ```yaml
+  - uses: actions/checkout@v4
+  ```
+  Этот шаг загружает код из репозитория.
 
-| Makefile Variable | Default                |
-| ----------------- | ---------------------- |
-| IMAGE_REG         | ghcr<span>.</span>io   |
-| IMAGE_REPO        | benc-uk/python-demoapp |
-| IMAGE_TAG         | latest                 |
-| AZURE_RES_GROUP   | temp-demoapps          |
-| AZURE_REGION      | uksouth                |
-| AZURE_SITE_NAME   | pythonapp-{git-sha}    |
+- **Настройка Python**:
+  ```yaml
+  - name: Set up python 3.12
+    uses: actions/setup-python@v3
+    with:
+        python-version: "3.12"
+  ```
+  Устанавливается версия Python для выполнения тестов.
 
-The app runs under Flask and listens on port 5000 by default, this can be changed with the `PORT` environmental variable.
+- **Установка Make**:
+  ```yaml
+  - name: Set up make
+    run: |
+        sudo apt update
+        sudo apt install -y make
+  ```
+  Устанавливается утилита Make, необходимая для запуска тестов.
 
-# Containers
+- **Запуск тестов**:
+  ```yaml
+  - name: Run tests
+    run: |
+        make test
+  ```
+  Выполняются тесты, определенные в Makefile.
 
-Public container image is [available on GitHub Container Registry](https://github.com/users/benc-uk/packages/container/package/python-demoapp)
+#### **publish_image**
 
-Run in a container with:
-
-```bash
-docker run --rm -it -p 5000:5000 ghcr.io/benc-uk/python-demoapp:latest
+```yaml
+publish_image:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    needs: run_tests
 ```
+Эта работа зависит от успешного завершения работы `run_tests`. Она отвечает за публикацию Docker-образа:
 
-Should you want to build your own container, use `make image` and the above variables to customise the name & tag.
+- **Логин в Docker Hub**:
+  ```yaml
+  - name: Log in to Docker Hub
+    uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+    with:
+        username: ${{ secrets.DOCKER_LOGIN }}
+        password: ${{ secrets.DOCKER_PASS }}
+  ```
+  Здесь происходит аутентификация на Docker Hub с использованием секретов для безопасного хранения логина и пароля.
 
-## Kubernetes
+- **Извлечение метаданных**:
+  ```yaml
+  - name: Extract metadata (tags, labels) for Docker
+    id: meta
+    uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+    with:
+        images: arsenier/cicd-task
+  ```
+  Этот шаг извлекает метаданные для образа Docker, такие как теги и метки.
 
-The app can easily be deployed to Kubernetes using Helm, see [deploy/kubernetes/readme.md](deploy/kubernetes/readme.md) for details
+- **Сборка и публикация Docker-образа**:
+  ```yaml
+  - name: Build and push Docker image
+    id: push
+    uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
+    with:
+        context: .
+        file: ./build/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+  ```
+  Здесь происходит сборка образа по указанному Dockerfile и его публикация в Docker Hub с использованием ранее извлеченных тегов и меток.
 
-# GitHub Actions CI/CD
+#### **deploy_application**
 
-A working set of CI and CD release GitHub Actions workflows are provided `.github/workflows/`, automated builds are run in GitHub hosted runners
-
-### [GitHub Actions](https://github.com/benc-uk/python-demoapp/actions)
-
-[![](https://img.shields.io/github/workflow/status/benc-uk/python-demoapp/CI%20Build%20App)](https://github.com/benc-uk/python-demoapp/actions?query=workflow%3A%22CI+Build+App%22)
-
-[![](https://img.shields.io/github/workflow/status/benc-uk/python-demoapp/CD%20Release%20-%20AKS?label=release-kubernetes)](https://github.com/benc-uk/python-demoapp/actions?query=workflow%3A%22CD+Release+-+AKS%22)
-
-[![](https://img.shields.io/github/workflow/status/benc-uk/python-demoapp/CD%20Release%20-%20Webapp?label=release-azure)](https://github.com/benc-uk/python-demoapp/actions?query=workflow%3A%22CD+Release+-+Webapp%22)
-
-[![](https://img.shields.io/github/last-commit/benc-uk/python-demoapp)](https://github.com/benc-uk/python-demoapp/commits/master)
-
-## Running in Azure App Service (Linux)
-
-If you want to deploy to an Azure Web App as a container (aka Linux Web App), a Bicep template is provided in the [deploy](deploy/) directory
-
-For a super quick deployment, use `make deploy` which will deploy to a resource group, temp-demoapps and use the git ref to create a unique site name
-
-```bash
-make deploy
+```yaml
+deploy_application:
+    name: Deploy application on the remote server
+    runs-on: ubuntu-latest
+    needs: publish_image
 ```
+Эта работа выполняется после успешной публикации образа. Она отвечает за развертывание приложения на удаленном сервере:
 
-## Running in Azure App Service (Windows)
+- **Деплой через SSH**:
+  ```yaml
+  - name: Log into the server via SSH and deploy image
+    uses: appleboy/ssh-action@v1.2.0
+    with:
+      host: ${{ secrets.SELECTEL_SERVER_IP }}
+      username: ${{ secrets.SELECTEL_SERVER_USER }}
+      key: ${{ secrets.SELECTEL_PRIVATE_SSH_KEY }}
+      script: |
+          docker ps -aq | xargs docker stop | xargs docker rm
+          docker run --pull=always -d -p 5000:5000 arsenier/cicd-task:master
+  ```
+  Этот шаг выполняет вход на удаленный сервер по SSH и разворачивает контейнер с приложением, останавливая и удаляя старые контейнеры перед запуском нового.
 
-Just don't, it's awful
+<!-- ## Заключение
+
+Данный файл пайплайна CI/CD демонстрирует автоматизацию процессов тестирования, сборки и развертывания приложения с использованием GitHub Actions. Он позволяет разработчикам быстро интегрировать изменения и обеспечивать надежное развертывание обновлений на продакшн-сервере.
+
+Citations:
+[1] https://graphite.dev/guides/introduction-to-github-actions-for-ci-cd-pipelines
+[2] https://900913.ru/tldr/common/
+[3] https://dev.to/snehalkadwe/a-guide-to-cicd-pipelines-using-github-action-5doj
+[4] https://github.blog/enterprise-software/ci-cd/build-ci-cd-pipeline-github-actions-four-steps/
+[5] https://www.youtube.com/watch?v=ciqWMIf7Pz0 -->
