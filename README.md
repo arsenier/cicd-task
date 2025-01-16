@@ -1,4 +1,37 @@
+# Практика CI/CD
+
 [![CI/CD](https://github.com/arsenier/cicd-task/actions/workflows/ci_cd.yml/badge.svg)](https://github.com/arsenier/cicd-task/actions/workflows/ci_cd.yml)
+
+## Краткое описание
+
+Данный репозиторий содержит результаты практической работы по настройке CI/CD конвейера для автоматического тестирования, сборки и развертывания приложения на облачном сервере.
+
+## Структура проекта
+
+В качестве приложения для развертывания был взят пример Python-приложения из урока: https://www.youtube.com/watch?v=8gtEtEY0ofM
+
+Ниже объясняется файловая структура, имеющая отношение непосредственно к CI/CD, игнорируя файлы самого приложения:
+
+```
+cicd-task/
+├── .github/
+│   └── workflows/
+│       └── ci_cd.
+├── blue_green/
+│   ├── bg_init.sh
+│   ├── bg_shutdown.sh
+│   ├── bg_switch.sh
+│   ├── docker-compose.yml
+│   ├── scp_to_serv.sh
+│   └── server_init.sh
+├── build/
+│   ├── Dockerfile
+├── nginx/
+│   ├── Dockerfile
+│   ├── nginx_blue.conf
+│   └── nginx_green.conf
+├── README.md
+```
 
 Файл пайплайна CI/CD, использующий GitHub Actions, описывает автоматизированный процесс интеграции и доставки программного обеспечения. Он состоит из нескольких ключевых компонентов, которые выполняются в ответ на определенные события, такие как коммиты в ветку `master`. Давайте разберем этот файл по частям.
 
